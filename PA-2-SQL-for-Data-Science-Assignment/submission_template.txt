@@ -1,0 +1,398 @@
+<?xml version="1.0"?>
+<pset>
+
+    <!--
+        CS 639, SPRING 2019
+        PROBLEM SET 2 SUBMISSION TEMPLATE
+
+        Please copy and paste your SQL queries (and potentially Python code
+        for the bonus question) into the appropriate spots below. 
+
+        When submitting SQL queries, please do not include the intitial 
+        %sql or %%sql IPython commands. Just include the SQL code.
+
+        DO NOT DELETE THE <![CDATA[ ... ]]> LINES IN EACH <answer> TAG!
+        Doing so will break the autograder. To avoid accidentally breaking
+        something, please leave all existing comments in this template
+        intact in your submission.
+    -->
+
+    <student>
+        <name>
+            <!-- Insert your full name on the line below. -->
+	Sin-Ying Lin
+            
+        </name>
+        <sunet>
+            <!-- Insert your UWNet ID (NOT your student ID number!) below. -->
+	slin249
+
+        </sunet>
+    </student>
+
+
+    <!-- BEGIN PROBLEM 1 -->
+    <answer number="1a">
+        <!-- Paste your solution to problem 1, part (a) below this line. --><![CDATA[
+			
+			SELECT
+				A.i i,
+				A.j j,
+				(A.val * B.val) val
+			FROM
+				A,
+				B
+			WHERE
+				A.i = B.i
+			AND A.j = B.j;
+
+
+        ]]><!-- End problem 1, part (a). -->
+    </answer>
+    <answer number="1b">
+        <!-- Paste your solution to problem 1, part (b) below this line. --><![CDATA[
+			
+			SELECT
+				tempa1.i i,
+				tempa2.j j,
+				tempa2.val val
+			FROM
+				A AS tempa1,
+				A AS tempa2
+			WHERE
+				(tempa1.i + 1) % 3 = tempa2.i
+			AND tempa1.j = tempa2.j;
+
+
+        ]]><!-- End problem 1, part (b). -->
+    </answer>
+    <answer number="1c">
+        <!-- Paste your solution to problem 1, part (c) below this line. --><![CDATA[
+
+			SELECT
+				a.i AS i,
+				b.j AS j,
+				b.val AS val
+			FROM
+				(
+					SELECT
+						tempa1.i AS i,
+						tempa2.j AS j,
+						tempa2.val AS val
+					FROM
+						A AS tempa1,
+						A AS tempa2
+					WHERE
+						(tempa1.i + 1) % 3 = tempa2.i
+					AND tempa1.j = tempa2.j
+				) AS a,
+				(
+					SELECT
+						tempa1.i AS i,
+						tempa2.j AS j,
+						tempa2.val AS val
+					FROM
+						A AS tempa1,
+						A AS tempa2
+					WHERE
+						(tempa1.i + 1) % 3 = tempa2.i
+					AND tempa1.j = tempa2.j
+				) AS b
+			WHERE
+				(a.i + 1) % 3 = b.i
+			AND a.j = b.j;
+		
+		
+
+        ]]><!-- End problem 1, part (c). -->
+    </answer>
+    <answer number="1d">
+        <!-- Paste your solution to problem 1, part (d) below this line. --><![CDATA[
+
+			SELECT
+				tempa1.i AS i,
+				tempa1.j AS j,
+				MAX(tempa2.val) AS val
+			FROM
+				A AS tempa1,
+				A AS tempa2
+			WHERE
+				(
+					tempa1.i = tempa2.i
+					AND tempa1.j = tempa2.j
+				)
+			OR (
+				tempa1.i = tempa2.i + 1
+				AND tempa1.j = tempa2.j
+			)
+			OR (
+				tempa1.i = tempa2.i
+				AND tempa1.j = tempa2.j - 1
+			)
+			OR (
+				tempa1.i = tempa2.i - 1
+				AND tempa1.j = tempa2.j
+			)
+			OR (
+				tempa1.i = tempa2.i
+				AND tempa1.j = tempa2.j + 1
+			)
+			GROUP BY
+				tempa1.i,
+				tempa1.j;
+
+        ]]><!-- End problem 1, part (d). -->
+    </answer>
+    <!-- END PROBLEM 1 -->
+
+
+    <!-- BEGIN PROBLEM 2 -->
+    <answer number="2a">
+        <!-- Paste your solution to problem 2, part (a) below this line. --><![CDATA[
+
+			SELECT
+				region,
+				COUNT(*) AS num_state_winners
+			FROM
+				(
+					SELECT
+						*
+					FROM
+						(
+							SELECT
+								region
+							FROM
+								energy
+							GROUP BY
+								region
+							ORDER BY
+								SUM(solar) DESC
+							LIMIT 1
+						)
+					UNION ALL
+						SELECT
+							*
+						FROM
+							(
+								SELECT
+									region
+								FROM
+									energy
+								GROUP BY
+									region
+								ORDER BY
+									SUM(wind) DESC
+								LIMIT 1
+							)
+						UNION ALL
+							SELECT
+								*
+							FROM
+								(
+									SELECT
+										region
+									FROM
+										energy
+									GROUP BY
+										region
+									ORDER BY
+										SUM(hydro) DESC
+									LIMIT 1
+								)
+							UNION ALL
+								SELECT
+									*
+								FROM
+									(
+										SELECT
+											region
+										FROM
+											energy
+										GROUP BY
+											region
+										ORDER BY
+											SUM(nuclear) DESC
+										LIMIT 1
+									)
+				)
+			GROUP BY
+				region
+			ORDER BY
+				COUNT(*) DESC;
+
+        ]]><!-- End problem 2, part (a). -->
+    </answer>
+    <answer number="2b">
+        <!-- Paste your solution to problem 2, part (b) below this line. --><![CDATA[
+
+			SELECT
+				*
+			FROM
+				(
+					SELECT
+						*
+					FROM
+						(
+							SELECT
+								a.state,
+								a.solar,
+								a.wind
+							FROM
+								(
+									SELECT
+										state,
+										SUM(solar) AS solar,
+										SUM(wind) AS wind
+									FROM
+										energy
+									GROUP BY
+										state
+									ORDER BY
+										(SUM(solar) + SUM(wind)) DESC
+									LIMIT 3
+								) AS a
+							ORDER BY
+								ABS(a.solar - a.wind) ASC
+							LIMIT 1
+						)
+					UNION ALL
+						SELECT
+							*
+						FROM
+							(
+								SELECT
+									state,
+									SUM(solar) AS solar,
+									SUM(wind) AS wind
+								FROM
+									energy
+								GROUP BY
+									state
+								ORDER BY
+									(SUM(solar) + SUM(wind)) DESC
+								LIMIT 1
+							)
+				)
+			ORDER BY
+				solar + wind DESC;
+
+        ]]><!-- End problem 2, part (b). -->
+    </answer>
+    <!-- END PROBLEM 2 -->
+
+
+    <!-- BEGIN PROBLEM 3 -->
+    <answer number="3a">
+        <!-- Paste your solution to problem 3, part (a) below this line. --><![CDATA[
+
+			SELECT
+				X.i AS i,
+				SUM(X.val * model.val) AS val
+			FROM
+				X,
+				model
+			WHERE
+				X.j = model.j
+			GROUP BY
+				X.i
+			LIMIT 5;
+
+        ]]><!-- End problem 3, part (a). -->
+    </answer>
+    <answer number="3b">
+        <!-- Paste your solution to problem 3, part (b) below this line. --><![CDATA[
+			
+			SELECT
+				i,
+				val
+			FROM
+				(
+					SELECT
+						i,
+						CASE
+					WHEN val > 0 THEN
+						1
+					ELSE
+						0
+					END AS val
+					FROM
+						(
+							SELECT
+								X.i AS i,
+								SUM(X.val * model.val) AS val
+							FROM
+								X,
+								model
+							WHERE
+								X.j = model.j
+							GROUP BY
+								X.i
+						)
+				)
+			LIMIT 5;
+
+
+        ]]><!-- End problem 3, part (b). -->
+    </answer>
+    <answer number="3c">
+        <!-- Paste your solution to problem 3, part (c) below this line. --><![CDATA[
+
+			SELECT
+				ROUND(
+					COUNT(
+						CASE
+						WHEN a.bredict = a.real THEN
+							a.bredict
+						END
+					),
+					3
+				) / ROUND(COUNT(*), 3) accuracy
+			FROM
+				(
+					SELECT
+						b.i i,
+						b.val bredict,
+						r.Label real
+					FROM
+						(
+							SELECT
+								i,
+								CASE
+							WHEN val > 0 THEN
+								1
+							ELSE
+								0
+							END AS val
+							FROM
+								(
+									SELECT
+										X.i i,
+										SUM(X.val * model.val) val
+									FROM
+										X,
+										model
+									WHERE
+										X.j = model.j
+									GROUP BY
+										X.i
+								)
+						) AS b
+					INNER JOIN (SELECT i, Label FROM iris) r ON b.i = r.i
+				) a;
+
+        ]]><!-- End problem 3, part (c). -->
+    </answer>
+    <!-- END PROBLEM 3 -->
+
+
+    <!-- BEGIN BONUS -->
+    <answer number="bonus1">
+        <!-- Paste your solution to bonus problem 1 below this line. --><![CDATA[
+
+
+
+        ]]><!-- End bonus problem 1. -->
+    </answer>
+    <!-- END BONUS -->
+
+</pset>
